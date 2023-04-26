@@ -1,0 +1,153 @@
+<html>
+<head>
+<title>Convert UTM coordinates to latitude & longitude</title>
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.3/dist/leaflet.css"
+    integrity="sha256-kLaT2GOSpHechhsozzB+flnD+zUyjE2LlfWPgU04xyI="
+    crossorigin=""/>
+<script src="https://unpkg.com/leaflet@1.9.3/dist/leaflet.js"
+    integrity="sha256-WBkoXOwTeyKclOHuWtc+i2uENFpDZ9YPdf5Hf+D7ewM="
+    crossorigin=""></script>
+<script src="L.LatLng.UTM.js"></script>
+</head>
+<style>
+body, p, input, li {
+    font-family: Verdana;
+    font-size: 1em;
+    line-height: 1.5em;
+}
+button {
+    font-family: Verdana;
+    font-size: 1em;
+    line-height: 1.5em;
+}
+div#container { 
+    display: flex; height: 100%; 
+}
+div#left { 
+    width: 26%; 
+}
+div#right { 
+    flex-grow: 1; 
+}
+div#map {
+    width: 100%; 
+    height: 100%; 
+    margin-left: 10px;
+}
+</style>
+<body>
+<div id="container">
+<div id="left">
+<p>
+    The boxes below allow you to enter either UTM (Universal Transverse Mercator) or geographic (latitude
+    and longitude) coordinates. After entering them and clicking the button:
+    <ul>
+        <li>the marker on the map will be updated</li>
+        <li>both the UTM and geographic coordinates will be updated</li>
+    </ul>
+    The boxes will change to green when the coordinates have been updated and are validated.   
+</p>
+<p>
+    <b>UTM</b>
+    <br /> Easting: <input type="number" id="easting" />
+    <br /> Northing: <input type="number" id="northing" />
+    <br /> Zone: <input type="number" id="zone" />
+    </p><p> <button onclick="updateMarkerFromUTM();">Update location from UTM coordinates</button></p>
+</p>
+<p>
+    <b>Geographic</b>
+    <!-- <br /> Latitude: <input type="number" id="latitude" value="-34.9287" />
+    <br /> Longitude: <input type="number" id="longitude" value="138.6000" /> -->
+    <br /> Latitude: <input type="number" id="latitude" />
+    <br /> Longitude: <input type="number" id="longitude" />
+    </p><p> <button onclick="updateMarkerFromGeographic();">Update location from geographic coordinates</button></p>
+</p>
+<p>
+    If entering UTM coordinates, please check that the zone is correct:
+    <ul>
+    <li> The western half of SA is zone 53</li>
+    <li> The eastern half of SA is zone 54</li>
+    </ul>
+    A yellow line on the map shows the boundary between zone 53 and 54.
+</p>
+
+</div>
+<div id="map"></div>
+</div>
+
+<script>
+
+var map = L.map('map').setView([-34.5, 138.5], 8);
+
+var latlngs = [
+    [0, 138],
+    [-88, 138],
+];
+
+var polyline = L.polyline(latlngs, {color: 'yellow', weight: 1}).addTo(map);
+
+const tiles = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', {
+    maxZoom: 19,
+    attribution: 'Tiles &copy; <a href="https://www.arcgis.com/home/item.html?id=10df2279f9684e4a9f6a7f08febac2a9">Esri</a> &mdash; Source: Esri, i-cubed, USDA, USGS, AEX, GeoEye, Getmapping, Aerogrid, IGN, IGP, UPR-EGP, and the GIS User Community'
+}).addTo(map);
+
+var markers = L.layerGroup();
+markers.addTo(map);
+
+function updateMarkerFromUTM () {
+    easting = Number(document.getElementById("easting").value);
+    northing = Number(document.getElementById("northing").value);
+    zone = Number(document.getElementById("zone").value);
+    item = L.utm({x: easting, y: northing, zone: zone, southHemi: true});
+    coord = item.latLng();
+    updateMarkerAt(coord.lat, coord.lng);
+}
+
+function updateMarkerFromGeographic () {
+    lat = Number(document.getElementById("latitude").value);
+    lng = Number(document.getElementById("longitude").value);
+    updateMarkerAt(lat, lng);
+}
+
+function updateMarkerAt (lat, lng) {
+    markers.clearLayers();
+    document.getElementById("latitude").value = Math.round(lat * 10000) / 10000;
+    document.getElementById("longitude").value = Math.round(lng * 10000) / 10000;
+    console.log("updating marker at lat " + lat + " lng " + lng);
+    marker = L.marker([lat, lng], {draggable: true});
+    utm = marker.getLatLng().utm();
+    document.getElementById("easting").value = Math.round(utm.x);
+    document.getElementById("northing").value = Math.round(utm.y);
+    document.getElementById("zone").value = utm.zone;
+    markers.addLayer(marker);
+    map.flyTo([lat, lng]);
+    resetColorsTo("lightgreen");
+
+    marker.on('dragend', function(event) {
+        m = event.target;
+        coord = m.getLatLng();
+        updateMarkerAt(coord.lat, coord.lng);
+        resetColorsTo("lightgreen");
+    });
+};
+
+document.getElementById("latitude").addEventListener("keyup", function(event) { resetColorsTo("white"); });
+document.getElementById("longitude").addEventListener("keyup", function(event) { resetColorsTo("white"); });
+document.getElementById("easting").addEventListener("keyup", function(event) { resetColorsTo("white"); });
+document.getElementById("northing").addEventListener("keyup", function(event) { resetColorsTo("white"); });
+document.getElementById("zone").addEventListener("keyup", function(event) { resetColorsTo("white"); });
+
+function resetColorsTo(colour) {
+    document.getElementById("latitude").style.backgroundColor = colour;
+    document.getElementById("longitude").style.backgroundColor = colour;
+    document.getElementById("easting").style.backgroundColor = colour;
+    document.getElementById("northing").style.backgroundColor = colour;
+    document.getElementById("zone").style.backgroundColor = colour;
+};
+
+// updateMarkerFromGeographic();
+
+</script>
+
+</body>
+</html>
