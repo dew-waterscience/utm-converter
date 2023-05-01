@@ -56,10 +56,10 @@ div#map {
 </p>
 <p>
     <b>Geographic</b>
-    <!-- <br /> Latitude: <input type="number" id="latitude" value="-34.9287" />
-    <br /> Longitude: <input type="number" id="longitude" value="138.6000" /> -->
-    <br /> Latitude: <input type="number" id="latitude" />
-    <br /> Longitude: <input type="number" id="longitude" />
+    <br /> Latitude: <input type="number" id="latitude" value="-34.9287" />
+    <br /> Longitude: <input type="number" id="longitude" value="138.6000" /> 
+    <!-- <br /> Latitude: <input type="number" id="latitude" />
+    <br /> Longitude: <input type="number" id="longitude" /> -->
     </p><p> <button onclick="updateMarkerFromGeographic();">Update location from geographic coordinates</button></p>
 </p>
 <p>
@@ -145,7 +145,7 @@ function resetColorsTo(colour) {
     document.getElementById("zone").style.backgroundColor = colour;
 };
 
-// updateMarkerFromGeographic();
+updateMarkerFromGeographic();
 
 </script>
 
